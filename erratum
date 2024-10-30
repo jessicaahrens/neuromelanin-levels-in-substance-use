@@ -1,0 +1,223 @@
+# Main analysis (all six studies – all SN/VTA)
+# Load metafor package
+library(metafor)
+# Study 1 data (Reyes et al., 1991)
+study1 <- escalc(measure = "SMD", m1i = 2.52, m2i = 2.75, sd1i = 0.765, sd2i = 0.941, n1i = 6, n2i = 18)
+# Study 2 data (Little et al., 2009)
+sem1i <- 17400 
+sem2i <- 19300 
+# Convert SEM to SD using the formula SD = SEM * sqrt(n)
+sd1i <- sem1i * sqrt(10)  # SD for group 1
+sd2i <- sem2i * sqrt(9)   # SD for group 2
+# Study 2 data with converted SDs
+study2 <- escalc(measure = "SMD", 
+                 m1i = 350000, 
+                 m2i = 418000, 
+                 sd1i = sd1i, 
+                 sd2i = sd2i, 
+                 n1i = 10, 
+                 n2i = 9)
+# Study 3 data (Tavares et al., 2018)
+study3 <- escalc(measure = "SMD", m1i = 1.11, m2i = 1.12, sd1i = 0.04, sd2i = 0.03, n1i = 19, n2i = 11)
+# Study 4 data (Cassidy et al., 2020)
+study4 <- data.frame(
+  yi = 0.62,  # Cohen's d
+  vi = (1.12 - 0.19)^2 / (4 * 0.62^2)  # Variance of Cohen's d
+)
+# Study 5 data (Jalles et al., 2020)
+study5 <- escalc(measure = "SMD", m1i = 12.6175, m2i = 11.485, sd1i = 4.22, sd2i = 2.9075, n1i = 19, n2i = 8)
+# Study 6 data (Wang et al., 2021)
+study6 <- escalc(measure = "SMD", m1i = 0.15, m2i = 0.14, sd1i = 0.06, sd2i = 0.08, n1i = 44, n2i = 59)
+# Combine data
+dat <- rbind(study1, study2, study3, study4, study5, study6)
+# Perform meta-analysis
+res <- rma(yi, vi, data = dat)
+# Summary of meta-analysis results
+summary(res)
+
+# Meta-power
+library(metapower)
+power <- mpower(effect_size = .44, study_size = 239, k = 6, i2 = .92, es_type = "d")
+print(power)
+
+# Subgroup analysis - only NM-MRI Studies (4 of the 6)
+# Load metafor library
+library(metafor)
+# Create data frame for each study with effect sizes and variances
+study_data <- data.frame(
+  study = c("Reyes et al", "Little et al", "Tavares et al", "Cassidy et al", "Jalles et al", "Wang et al"),
+  effect_size = c(study1$yi, study2$yi, study3$yi, study4$yi, study5$yi, study6$yi),  # Effect size
+  variance = c(study1$vi, study2$vi, study3$vi, study4$vi, study5$vi, study6$vi)  # Actual variances
+)
+# Define the subgroup indices
+subgroup_indices <- c(3,4,5,6)
+# Perform subgroup analysis
+subgroup_res <- rma(
+  yi = study_data[subgroup_indices, "effect_size"],  # Select effect sizes for the subgroup
+  vi = study_data[subgroup_indices, "variance"],     # Select variances for the subgroup
+  method = "REML"  # Use REML method for estimation 
+)
+# Print results
+print(subgroup_res)
+
+# Subgroup analysis – cocaine use (3 of 6 studies)
+# Create data frame for each study with effect sizes and variances
+study_data <- data.frame(
+  study = c("Reyes et al", "Little et al", "Tavares et al", "Cassidy et al", "Jalles et al", "Wang et al"),
+  effect_size = c(study1$yi, study2$yi, study3$yi, study4$yi, study5$yi, study6$yi),  # Effect size
+  variance = c(study1$vi, study2$vi, study3$vi, study4$vi, study5$vi, study6$vi)  # Actual variances
+)
+# Define the subgroup indices
+subgroup_indices <- c(2,4,6)
+# Perform subgroup analysis
+subgroup_res <- rma(
+  yi = study_data[subgroup_indices, "effect_size"],  # Select effect sizes for the subgroup
+  vi = study_data[subgroup_indices, "variance"],     # Select variances for the subgroup
+  method = "REML"  # Use REML method for estimation
+)
+# Print results
+print(subgroup_res)
+
+# Meta-power for subgroup analysis
+library(metapower)
+mri_power <- mpower(effect_size = .11, study_size = 53, k = 4, i2 = .0, es_type = "d")
+print(mri_power)
+cocaine_power <- mpower(effect_size = .84, study_size = 177, k = 3, i2 = .93, es_type = "d")
+print(cocaine_power)
+
+# Load metafor library
+library(metafor)
+
+# Create data frame for the studies with effect sizes and variances
+study_data <- data.frame(
+  study = c("Reyes et al", "Little et al"),
+  effect_size = c(study1$yi, study2$yi),  # Effect sizes for Reyes et al and Little et al
+  variance = c(study1$vi, study2$vi)      # Variances for Reyes et al and Little et al
+)
+
+# Perform meta-analysis on the selected studies
+post_mortem_res <- rma(
+  yi = study_data$effect_size,  # Effect sizes for the selected studies
+  vi = study_data$variance,     # Variances for the selected studies
+  method = "REML"               # Use REML method for estimation
+)
+
+# Print results
+print(post_mortem_res)
+
+# Install and load pwr package (if not already installed)
+# install.packages("pwr")
+library(pwr)
+
+# Given results from your random-effects model
+effect_size <- -0.6862  # Model estimate
+standard_error <- 0.4528 # Standard error from model results
+
+# Calculate Cohen's d (effect size) from the estimate and standard error
+# Note: We can use this as a measure for power analysis
+# Cohen's d can be calculated as estimate / standard deviation
+# However, we need the standard deviation for this calculation
+
+# Since we are dealing with a random effects model, we will calculate the standard deviation of the effect size
+# Assuming tau represents the between-study variability (which may serve as SD)
+tau <- sqrt(0.1757)  # Tau^2 from your output
+
+# Effect size calculation (Cohen's d)
+cohen_d <- effect_size / (standard_error)  # Cohen's d formula
+
+# Perform power analysis
+# You can specify different sample sizes to see the effect on power
+sample_size <- 2  # Number of studies
+power_analysis <- pwr.t.test(d = cohen_d, 
+                              n = sample_size, 
+                              sig.level = 0.05, 
+                              type = "two.sample", 
+                              alternative = "two.sided")
+
+# Print power analysis results
+print(power_analysis)
+
+# Optionally, if you want to calculate the required sample size for a target power (e.g., 0.80)
+target_power <- 0.80
+required_sample_size <- pwr.t.test(d = cohen_d, 
+                                    power = target_power, 
+                                    sig.level = 0.05, 
+                                    type = "two.sample", 
+                                    alternative = "two.sided")
+
+# Print required sample size
+print(required_sample_size)
+
+# Meta regression for age
+# Load the metafor library
+library(metafor)
+# Create data frames with ages and effect sizes
+study_data <- data.frame(
+  study = c("Reyes et al", "Little et al", "Tavares et al", "Cassidy et al", "Jalles et al", "Wang et al"),
+  mean_age = c(35.3, 38, 23.73, 45.9, NA, 44.89), # Mean age
+  sd_age = c(9.27, 9.78, 4.67, 9.5, NA, 8.79),      # Standard deviation of age
+  effect_size = c(study1$yi, study2$yi, study3$yi, study4$yi, study5$yi, study6$yi)  # Effect size
+)
+# Add variances of effect sizes
+study_data$vi <- c(study1$vi, study2$vi, study3$vi, study4$vi, study5$vi, study6$vi)
+# Impute median age for Jalles et al
+study_data$mean_age[study_data$study == "Jalles et al"] <- 22.5
+# Impute standard deviation for Jalles et al
+study_data$sd_age[study_data$study == "Jalles et al"] <- NA
+# Perform meta-regression
+res <- rma(yi = effect_size, 
+           vi = vi,mi
+           mods = ~ mean_age, 
+           data = study_data)
+# Print results
+print(res)
+
+#Meta-regression for male ratio
+# Create data frames with number of males and females
+study_data <- data.frame(
+  study = c("Reyes et al", "Little et al", "Tavares et al", "Cassidy et al", "Jalles et al", "Wang et al"),
+  males = c(14, 16, 21, 55, 19, 81),  # Number of males
+  females = c(10, 3, 9, 0, 8, 22),     # Number of females
+  effect_size = c(study1$yi, study2$yi, study3$yi, study4$yi, study5$yi, study6$yi)  # Effect size
+)
+# Calculate proportion of males
+study_data$male_ratio <- study_data$males / (study_data$males + study_data$females)
+# Add variances
+study_data$vi <- c(study1$vi, study2$vi, study3$vi, study4$vi, study5$vi, study6$vi)  # Perform meta-regression
+res <- rma(yi = study_data$effect_size, 
+           vi = study_data$vi,
+           mods = ~ male_ratio,
+           data = study_data)
+# Print results
+print(res)
+
+#Meta regression on publication year
+# Load the metafor library
+library(metafor)
+# Create data frame
+# Study 1 data (Reyes et al., 1991)
+study1 <- escalc(measure = "SMD", m1i = 2.52, m2i = 2.75, sd1i = 0.765, sd2i = 0.941, n1i = 6, n2i = 18)
+# Study 2 data (Little et al., 2009)
+study2 <- escalc(measure = "SMD", m1i = 350000, m2i = 418000, sd1i = 17400, sd2i = 19300, n1i = 10, n2i = 9)
+# Study 3 data (Tavares et al., 2018)
+study3 <- escalc(measure = "SMD", m1i = 1.11, m2i = 1.12, sd1i = 0.04, sd2i = 0.03, n1i = 19, n2i = 11)
+# Study 4 data (Cassidy et al., 2020)
+study4 <- data.frame(
+  yi = 0.62,  # Cohen's d
+  vi = (1.12 - 0.19)^2 / (4 * 0.62^2)  # Variance of Cohen's d
+)
+# Study 5 data (Jalles et al., 2020)
+study5 <- escalc(measure = "SMD", m1i = 12.6175, m2i = 11.485, sd1i = 4.22, sd2i = 2.9075, n1i = 19, n2i = 8)
+# Study 6 data (Wang et al., 2021)
+study6 <- escalc(measure = "SMD", m1i = 0.15, m2i = 0.14, sd1i = 0.06, sd2i = 0.08, n1i = 44, n2i = 59)
+# Combine data
+dat <- rbind(study1, study2, study3, study4, study5, study6)
+# Add publication year for each study
+dat$year <- c(1991, 2009, 2018, 2020, 2020, 2021)
+# Run the meta-regression with publication year as a predictor
+res <- rma(yi = yi, 
+           vi = vi,
+           mods = ~ year,
+           data = dat)
+# Print the results
+print(res)
