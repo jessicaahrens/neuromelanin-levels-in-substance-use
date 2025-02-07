@@ -166,7 +166,7 @@ study_data$mean_age[study_data$study == "Jalles et al"] <- 22.5
 study_data$sd_age[study_data$study == "Jalles et al"] <- NA
 # Perform meta-regression
 res <- rma(yi = effect_size, 
-           vi = vi,mi
+           vi = vi,
            mods = ~ mean_age, 
            data = study_data)
 # Print results
