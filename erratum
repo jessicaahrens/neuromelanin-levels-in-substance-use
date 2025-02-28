@@ -35,11 +35,6 @@ res <- rma(yi, vi, data = dat)
 # Summary of meta-analysis results
 summary(res)
 
-# Meta-power
-library(metapower)
-power <- mpower(effect_size = .44, study_size = 239, k = 6, i2 = .92, es_type = "d")
-print(power)
-
 # Subgroup analysis - only NM-MRI Studies (4 of the 6)
 # Load metafor library
 library(metafor)
@@ -78,13 +73,6 @@ subgroup_res <- rma(
 # Print results
 print(subgroup_res)
 
-# Meta-power for subgroup analysis
-library(metapower)
-mri_power <- mpower(effect_size = .11, study_size = 53, k = 4, i2 = .0, es_type = "d")
-print(mri_power)
-cocaine_power <- mpower(effect_size = .84, study_size = 177, k = 3, i2 = .93, es_type = "d")
-print(cocaine_power)
-
 # Load metafor library
 library(metafor)
 
@@ -114,7 +102,6 @@ effect_size <- -0.6862  # Model estimate
 standard_error <- 0.4528 # Standard error from model results
 
 # Calculate Cohen's d (effect size) from the estimate and standard error
-# Note: We can use this as a measure for power analysis
 # Cohen's d can be calculated as estimate / standard deviation
 # However, we need the standard deviation for this calculation
 
@@ -125,28 +112,7 @@ tau <- sqrt(0.1757)  # Tau^2 from your output
 # Effect size calculation (Cohen's d)
 cohen_d <- effect_size / (standard_error)  # Cohen's d formula
 
-# Perform power analysis
-# You can specify different sample sizes to see the effect on power
-sample_size <- 2  # Number of studies
-power_analysis <- pwr.t.test(d = cohen_d, 
-                              n = sample_size, 
-                              sig.level = 0.05, 
-                              type = "two.sample", 
-                              alternative = "two.sided")
-
-# Print power analysis results
-print(power_analysis)
-
-# Optionally, if you want to calculate the required sample size for a target power (e.g., 0.80)
-target_power <- 0.80
-required_sample_size <- pwr.t.test(d = cohen_d, 
-                                    power = target_power, 
-                                    sig.level = 0.05, 
-                                    type = "two.sample", 
-                                    alternative = "two.sided")
-
-# Print required sample size
-print(required_sample_size)
+#All power analyses for erratum have been conducted using G-power for simplicity
 
 # Meta regression for age
 # Load the metafor library
